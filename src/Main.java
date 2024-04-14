@@ -2,7 +2,7 @@ import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
-        HTTPServer server = HTTPServer(80);
+        HTTPServer server = new HTTPServer(80);
         server.serve("sample-docroot", Map.ofEntries(
             Map.entry("index", "index.html"),
             Map.entry("gallery", "gallery.html"),
