@@ -1,24 +1,28 @@
+package servers;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
+import handlers.ConnectionHandler;
+import handlers.HTTPConnectionHandler;
+
 
 public class TCPServer {
     private String host;
     private int port;
-    private ConnectionHandler connectionHandler;
     private boolean useDaemonThreads;
     private ServerSocket serverSocket;
     private Semaphore semaphore;
-    private int connectionBacklogQueueSize = 5;
+    private final int connectionBacklogQueueSize = 5;
     private Map<Long, Thread> threads;
 
-    public TCPServer(int port, ConnectionHandler connectionHandler, Integer maxNumberOfActiveThreads, boolean useDaemonThreads) {
+    public TCPServer(int port, Integer maxNumberOfActiveThreads, boolean useDaemonThreads) {
         this.host = "";
         this.port = port;
-        this.connectionHandler = connectionHandler;
         this.useDaemonThreads = useDaemonThreads;
         this.threads = new HashMap<>();
 
@@ -40,7 +44,7 @@ public class TCPServer {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Accepted new client " + clientSocket.getRemoteSocketAddress());
-                Thread thread = new Thread(() -> handleNewConnectionThread(clientSocket));
+                Thread thread = new Thread(() -> handleNewConnectionThread(clientSocket, clientSocket.getRemoteSocketAddress()));
                 thread.setDaemon(useDaemonThreads);
                 thread.start();
                 if (!useDaemonThreads) {
@@ -52,12 +56,13 @@ public class TCPServer {
         }
     }
 
-    private void handleNewConnectionThread(Socket connection) {
+    private void handleNewConnectionThread(Socket connection, SocketAddress clientAddress) {
         try {
             if (semaphore != null) {
                 semaphore.acquire();
             }
-            connectionHandler.handle(connection);
+            HTTPConnectionHandler connectionHandler = new HTTPConnectionHandler(connection, clientAddress.toString());
+            connectionHandler.handle(connection, clientAddress);
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -91,16 +96,5 @@ public class TCPServer {
             }
         }
     }
-
-    public static void main(String[] args) {
-        // Example usage
-        TCPServer server = new TCPServer(8080, (connection -> {
-            // Handle connection
-        }), 10, false);
-        server.serveForever();
-    }
 }
 
-interface ConnectionHandler {
-    void handle(Socket connection);
-}

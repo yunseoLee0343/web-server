@@ -1,15 +1,21 @@
+package handlers;
+
 import errors.BadRequestError;
 import errors.RecvTimeoutError;
 import models.HTTPRequest;
 import models.HTTPResponse;
+import servers.HTTPServer;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HTTPConnectionHandler {
+public class HTTPConnectionHandler implements ConnectionHandler {
     private static final String CRLF = "\r\n";
     private static final String END_OF_REQUEST = "\r\n\r\n";
     private static final int BUFFER_SIZE = 4096;
@@ -21,10 +27,40 @@ public class HTTPConnectionHandler {
     private final String clientAddress;
     private String unprocessedData;
 
-    HTTPConnectionHandler(Socket connection, String clientAddress) {
+    public HTTPConnectionHandler(Socket connection, String clientAddress) {
         this.connection = connection;
         this.clientAddress = clientAddress;
         this.unprocessedData = "";
+    }
+
+    @Override
+    public void handle(Socket connection, SocketAddress clientAddress) {
+        HTTPConnectionHandler httpConnection = new HTTPConnectionHandler(connection, clientAddress.toString());
+        try {
+            while (true) {
+                HTTPRequest request = httpConnection.getRequest();
+                if (request == null) {
+                    break;
+                }
+                HTTPServer httpServer = HTTPServer.getInstance(80);
+                httpServer.serveFile(request, httpConnection);
+                if (!request.isConnectionKeepAlive()) {
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (BadRequestError e) {
+            throw new RuntimeException(e);
+        } catch (RecvTimeoutError e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                connection.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static synchronized HTTPConnectionHandler getInstance(Socket connection, String clientAddress) {

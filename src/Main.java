@@ -1,3 +1,5 @@
+import servers.HTTPServer;
+
 import java.util.Map;
 
 public class Main {
@@ -10,10 +12,8 @@ public class Main {
             Map.entry("404", "404.html"))
         );
         // Handle server close with ctrl+c in terminal
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            server.close();
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(server::serverClose));
         // Start the server
-        server.serve_forever();
+        server.serveForever();
     }
 }
