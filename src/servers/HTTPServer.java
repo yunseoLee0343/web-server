@@ -61,7 +61,9 @@ public class HTTPServer extends TCPServer {
             requestedPath = requestedPath.substring(1);
         }
         String absRequestedPath = getAbsolutePathRelativeToDocroot(requestedPath);
+        System.out.println("Requested path: " + absRequestedPath);
         String absDocrootPath = Paths.get(serveDocroot).toAbsolutePath().toString();
+        System.out.println("Docroot path: " + absDocrootPath);
         // Won't serve out of docroot
         if (!absRequestedPath.startsWith(absDocrootPath)) {
             if (serveConfig.containsKey("400")) {

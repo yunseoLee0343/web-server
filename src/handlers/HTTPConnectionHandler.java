@@ -42,7 +42,6 @@ public class HTTPConnectionHandler implements ConnectionHandler {
                 if (request == null) {
                     break;
                 }
-                System.out.println("--2: " + server.toString());
                 server.serveFile(request, httpConnection);
                 if (!request.isConnectionKeepAlive()) {
                     break;

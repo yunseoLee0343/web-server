@@ -11,7 +11,6 @@ public class Main {
             Map.entry("400", "400.html"),
             Map.entry("404", "404.html"))
         );
-        System.out.println("--1: " + server.toString());
         // Handle server close with ctrl+c in terminal
         Runtime.getRuntime().addShutdownHook(new Thread(server::serverClose));
         // Start the server
