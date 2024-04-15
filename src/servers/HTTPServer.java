@@ -30,6 +30,10 @@ public class HTTPServer extends TCPServer {
         this.serveConfig = new HashMap<>();
     }
 
+    public String getServeDocroot() {
+        return serveDocroot;
+    }
+
     public void serve(String docroot, Map<String, String> serveConfig) {
         this.serveDocroot = docroot;
         this.serveConfig = serveConfig;
@@ -52,7 +56,7 @@ public class HTTPServer extends TCPServer {
     }
 
     public void serveFile(HTTPRequest request, HTTPConnectionHandler httpConnection) throws IOException {
-        String requestedPath = request.getPath().equals("/") ? getIndexHtmlPath() : request.getPath();
+        String requestedPath = request.getPath().equals("/") ? getIndexHtmlPath() : request.getPath(); //index.html
         if (requestedPath.startsWith("/")) {
             requestedPath = requestedPath.substring(1);
         }

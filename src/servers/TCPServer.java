@@ -7,7 +7,7 @@ import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
-import handlers.ConnectionHandler;
+
 import handlers.HTTPConnectionHandler;
 
 
@@ -38,13 +38,13 @@ public class TCPServer {
         serverSocket.setReuseAddress(true);
     }
 
-    public void serveForever() {
+    public void serveForever(HTTPServer server) {
         try {
             findSocketToBindAndListen();
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Accepted new client " + clientSocket.getRemoteSocketAddress());
-                Thread thread = new Thread(() -> handleNewConnectionThread(clientSocket, clientSocket.getRemoteSocketAddress()));
+                Thread thread = new Thread(() -> handleNewConnectionThread(server, clientSocket, clientSocket.getRemoteSocketAddress()));
                 thread.setDaemon(useDaemonThreads);
                 thread.start();
                 if (!useDaemonThreads) {
@@ -56,13 +56,13 @@ public class TCPServer {
         }
     }
 
-    private void handleNewConnectionThread(Socket connection, SocketAddress clientAddress) {
+    private void handleNewConnectionThread(HTTPServer server, Socket connection, SocketAddress clientAddress) {
         try {
             if (semaphore != null) {
                 semaphore.acquire();
             }
             HTTPConnectionHandler connectionHandler = new HTTPConnectionHandler(connection, clientAddress.toString());
-            connectionHandler.handle(connection, clientAddress);
+            connectionHandler.handle(server, connection, clientAddress);
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {

@@ -34,7 +34,7 @@ public class HTTPConnectionHandler implements ConnectionHandler {
     }
 
     @Override
-    public void handle(Socket connection, SocketAddress clientAddress) {
+    public void handle(HTTPServer server, Socket connection, SocketAddress clientAddress) {
         HTTPConnectionHandler httpConnection = new HTTPConnectionHandler(connection, clientAddress.toString());
         try {
             while (true) {
@@ -42,8 +42,8 @@ public class HTTPConnectionHandler implements ConnectionHandler {
                 if (request == null) {
                     break;
                 }
-                HTTPServer httpServer = HTTPServer.getInstance(80);
-                httpServer.serveFile(request, httpConnection);
+                System.out.println("--2: " + server.toString());
+                server.serveFile(request, httpConnection);
                 if (!request.isConnectionKeepAlive()) {
                     break;
                 }
